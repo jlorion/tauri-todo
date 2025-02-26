@@ -1,43 +1,49 @@
 
 
+import Database from '@tauri-apps/plugin-sql';
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation} from 'react-router-dom';
 
 
 
 const Todo = () => {
     const navigate = useNavigate();
-    
+    const location = useLocation();
+    const {user_id} = location.state|| {};
     const [todos, setTodos] = useState([]);
     const [inputValue, setInputValue] = useState('');
 
     const getTodos = async ()=>{
-        print("hellow")
+        const db = await Database.load("sqlite:database.db");
+        const todoRes = await db.select("SELECT * FROM todo WHERE user_id = $1", [user_id])
+        setTodos(todoRes)
     };   
 
     const logout = async() =>{
-        navigate('/login');
+        navigate('/');
     }
 
     const handleAddTodo = async(e) => {
         e.preventDefault();
         if (!inputValue) return;
-
-        
+        const db = await Database.load("sqlite:database.db");
+        db.execute("INSERT into todo (todo, isDone, user_id) VALUES ($1, $2, $3)", [inputValue, 0, user_id])
+        getTodos()
         setInputValue('');
     };
 
-    const handleToggleTodo = async(index) => {
+    const handleToggleTodo = async(index, todo_id) => {
         const newTodos = [...todos];
-        newTodos[index].done = !newTodos[index].done;
-        setTodos(newTodos);
+        newTodos[index].isDone = 1 - newTodos[index].isDone;
+        const db = await Database.load("sqlite:database.db");
+        db.execute("UPDATE todo SET isDone = $1 WHERE id = $2", [newTodos[index].isDone, todo_id])
+        getTodos();
     };
-
-    const handleRemoveTodo = async (index) => {
-        console.log(todos[index].id)
-
-        const newTodos = todos.filter((_, i) => i !== index);
-        setTodos(newTodos);
+    
+    const handleRemoveTodo = async (todo_id) => {
+        const db = await Database.load("sqlite:database.db");
+        db.execute("DELETE FROM todo WHERE id = $1", [todo_id])
+        getTodos()
     };
     useEffect(() => {
         getTodos();
@@ -61,9 +67,9 @@ const Todo = () => {
             </form>
             <ul className="space-y-2">
                 {todos.map((todo, index) => (
-                    <li key={index} className={`flex items-center p-2 rounded-md m-1 justify-between ${todo.done ? 'line-through text-gray-500 bg-neutral-300' : ''}`}>
-                        <span onClick={() => handleToggleTodo(index)} className="cursor-pointer">{todo.content}</span>
-                        <button onClick={() => handleRemoveTodo(index)} className="text-red-500 hover:text-red-700">
+                    <li key={index} className={`flex items-center p-2 rounded-md m-1 justify-between ${todo.isDone==1? 'line-through text-gray-500 bg-neutral-300' : ''}`}>
+                        <span onClick={() => handleToggleTodo(index, todo.id)} className="cursor-pointer">{todo.todo}</span>
+                        <button onClick={() => handleRemoveTodo(todo.id)} className="text-red-500 hover:text-red-700">
                             Remove
                         </button>
                     </li>

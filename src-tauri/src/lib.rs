@@ -1,7 +1,49 @@
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
+use tauri_plugin_sql::{Builder, Migration, MigrationKind};
+
 pub fn run() {
+    let migrations = vec![  
+        Migration {  
+            version: 1,  
+            description: "create users table",  
+            sql: "CREATE TABLE IF NOT EXISTS users (  
+                id INTEGER PRIMARY KEY AUTOINCREMENT,  
+                name TEXT NOT NULL,  
+                email TEXT,
+                password TEXT 
+            ); 
+            CREATE TABLE IF NOT EXISTS todo (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,  
+                todo TEXT NOT NULL,  
+                isDone INTEGER NOT NULL,
+                user_id INTEGER ,
+                FOREIGN KEY(user_id) REFERENCES users(id) 
+            );",  
+            kind: MigrationKind::Up,  
+        },  
+        Migration {  
+            version: 2,  
+            description: "make email unique",  
+            sql: "CREATE TABLE IF NOT EXISTS users (  
+                id INTEGER PRIMARY KEY AUTOINCREMENT,  
+                name TEXT NOT NULL,  
+                email TEXT,
+                password TEXT,
+                UNIQUE(email)
+            ); 
+            CREATE TABLE IF NOT EXISTS todo (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,  
+                todo TEXT NOT NULL,  
+                isDone INTEGER NOT NULL,
+                user_id INTEGER ,
+                FOREIGN KEY(user_id) REFERENCES users(id) 
+            );",  
+            kind: MigrationKind::Up,  
+        }  
+    ];  
+
     tauri::Builder::default()
-        .plugin(tauri_plugin_sql::Builder::new().build())
+        .plugin(tauri_plugin_sql::Builder::default().add_migrations("sqlite:database.db", migrations).build())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
