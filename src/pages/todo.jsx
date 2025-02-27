@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,7 +10,7 @@ const Todo = () => {
     const [inputValue, setInputValue] = useState('');
 
     const getTodos = async ()=>{
-        print("hellow")
+        console.log("hellow")
     };   
 
     const logout = async() =>{
