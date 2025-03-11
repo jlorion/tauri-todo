@@ -1,84 +1,195 @@
-
-
-import Database from '@tauri-apps/plugin-sql';
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation} from 'react-router-dom';
-
-
+import { DatePicker } from "@/components/ui/datepicker";
+import { Input } from "@/components/ui/input";
+import MainLayout from "@/layouts/MainLayout";
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { FaPlus } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
+import { MdKeyboardArrowDown } from "react-icons/md";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import MyDropdown from "@/components/custom/MyDropdown";
+import TodoListLayout from "@/layouts/TodoListLayout";
 
 const Todo = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const {user_id} = location.state|| {};
-    const [todos, setTodos] = useState([]);
-    const [inputValue, setInputValue] = useState('');
+  const [position, setPosition] = useState("all");
+  return (
+    <>
+      <MainLayout width="sm:w-190 font-semibold text-center">
+        <h1 className="text-3xl text-center mb-8">Todo List</h1>
+        <div className="space-y-5">
+          <div className="flex gap-x-10 pb-4">
+            <Input placeholder="Search" icon={<FaSearch />} />
 
-    const getTodos = async ()=>{
-        const db = await Database.load("sqlite:database.db");
-        const todoRes = await db.select("SELECT * FROM todo WHERE user_id = $1", [user_id])
-        setTodos(todoRes)
-    };   
+            <MyDropdown dialogTitle="Add Task" buttons={[{ text: "Submit" }]}>
+              <Button type="submit" className="rounded-4xl" size="lg">
+                <FaPlus />
+              </Button>
+            </MyDropdown>
+          </div>
 
-    const logout = async() =>{
-        navigate('/');
-    }
-
-    const handleAddTodo = async(e) => {
-        e.preventDefault();
-        if (!inputValue) return;
-        const db = await Database.load("sqlite:database.db");
-        db.execute("INSERT into todo (todo, isDone, user_id) VALUES ($1, $2, $3)", [inputValue, 0, user_id])
-        getTodos()
-        setInputValue('');
-    };
-
-    const handleToggleTodo = async(index, todo_id) => {
-        const newTodos = [...todos];
-        newTodos[index].isDone = 1 - newTodos[index].isDone;
-        const db = await Database.load("sqlite:database.db");
-        db.execute("UPDATE todo SET isDone = $1 WHERE id = $2", [newTodos[index].isDone, todo_id])
-        getTodos();
-    };
-    
-    const handleRemoveTodo = async (todo_id) => {
-        const db = await Database.load("sqlite:database.db");
-        db.execute("DELETE FROM todo WHERE id = $1", [todo_id])
-        getTodos()
-    };
-    useEffect(() => {
-        getTodos();
-    }, [])
-
-    return (
-        <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded-lg shadow-md">
-            <button onClick={()=>logout()} className='bg-red-500 p-2 rounded-md text-white hover:bg-red-400'>Log out</button>
-            <h2 className="text-2xl font-bold mb-4 text-center">Todo List</h2>
-            <form onSubmit={handleAddTodo} className="flex mb-4">
-                <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Add a new task"
-                    className="flex-grow p-2 border border-gray-300 rounded-md"
-                />
-                <button type="submit" className="ml-2 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-400">
-                    Add
-                </button>
-            </form>
-            <ul className="space-y-2">
-                {todos.map((todo, index) => (
-                    <li key={index} className={`flex items-center p-2 rounded-md m-1 justify-between ${todo.isDone==1? 'line-through text-gray-500 bg-neutral-300' : ''}`}>
-                        <span onClick={() => handleToggleTodo(index, todo.id)} className="cursor-pointer">{todo.todo}</span>
-                        <button onClick={() => handleRemoveTodo(todo.id)} className="text-red-500 hover:text-red-700">
-                            Remove
-                        </button>
-                    </li>
-                ))}
-            </ul>
+          <div className="flex place-items-start">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  Status
+                  <MdKeyboardArrowDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuRadioGroup
+                  value={position}
+                  onValueChange={setPosition}
+                >
+                  <DropdownMenuRadioItem
+                    onSelect={() => console.log("all")}
+                    value="all"
+                  >
+                    All
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    onSelect={() => console.log("completed")}
+                    value="completed"
+                  >
+                    Completed
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    onSelect={() => console.log("pending")}
+                    value="pending"
+                  >
+                    Pending
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    onSelect={() => console.log("overdue")}
+                    value="overdue"
+                  >
+                    Overdue
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <TodoListLayout>
+            <div className="grid grid-cols-2 gap-5">
+              <MyDropdown
+                dialogTitle="Full Details"
+                buttons={[
+                  { text: "Save" },
+                  { text: "Delete", variant: "destructive" },
+                  { text: "Complete", variant: "success" },
+                ]}
+              >
+                <Button
+                  type="submit"
+                  className="rounded-md w-full p-4 flex justify-start items-start h-fit"
+                >
+                  <div className="space-y-4">
+                    <h1 className="flex text-xl">
+                      {"Title:"} <span className="ml-4">{"Kupal mode"}</span>
+                    </h1>
+                    <h1 className="flex text-justify text-wrap">
+                      {"Description:"}{" "}
+                      <span className="ml-4">
+                        {
+                          "Pwede magtanong? Ganyan ho ba ang boses ng mga nagtatanong maem?? pag limit og words dri boy na mga let's say 10 words pag mo reach na ana kay mag ellipsis na sya..."
+                        }
+                      </span>
+                    </h1>
+                  </div>
+                </Button>
+              </MyDropdown>
+              <MyDropdown
+                dialogTitle="Full Details"
+                buttons={[
+                  { text: "Save" },
+                  { text: "Delete", variant: "destructive" },
+                  { text: "Complete", variant: "success" },
+                ]}
+              >
+                <Button
+                  type="submit"
+                  className="rounded-md w-full p-4 flex justify-start items-start h-fit"
+                >
+                  <div className="space-y-4">
+                    <h1 className="flex text-xl">
+                      {"Title:"} <span className="ml-4">{"Kupal mode"}</span>
+                    </h1>
+                    <h1 className="flex text-justify text-wrap">
+                      {"Description:"}{" "}
+                      <span className="ml-4">
+                        {
+                          "Pwede magtanong? Ganyan ho ba ang boses ng mga nagtatanong maem?? pag limit og words dri boy na mga let's say 10 words pag mo reach na ana kay mag ellipsis na sya..."
+                        }
+                      </span>
+                    </h1>
+                  </div>
+                </Button>
+              </MyDropdown>
+              <MyDropdown
+                dialogTitle="Full Details"
+                buttons={[
+                  { text: "Save" },
+                  { text: "Delete", variant: "destructive" },
+                  { text: "Complete", variant: "success" },
+                ]}
+              >
+                <Button
+                  type="submit"
+                  className="rounded-md w-full p-4 flex justify-start items-start h-fit"
+                >
+                  <div className="space-y-4">
+                    <h1 className="flex text-xl">
+                      {"Title:"} <span className="ml-4">{"Kupal mode"}</span>
+                    </h1>
+                    <h1 className="flex text-justify text-wrap">
+                      {"Description:"}{" "}
+                      <span className="ml-4">
+                        {
+                          "Pwede magtanong? Ganyan ho ba ang boses ng mga nagtatanong maem?? pag limit og words dri boy na mga let's say 10 words pag mo reach na ana kay mag ellipsis na sya..."
+                        }
+                      </span>
+                    </h1>
+                  </div>
+                </Button>
+              </MyDropdown>
+              <MyDropdown
+                dialogTitle="Full Details"
+                buttons={[
+                  { text: "Save" },
+                  { text: "Delete", variant: "destructive" },
+                  { text: "Complete", variant: "success" },
+                ]}
+              >
+                <Button
+                  type="submit"
+                  className="rounded-md w-full p-4 flex justify-start items-start h-fit"
+                >
+                  <div className="space-y-4">
+                    <h1 className="flex text-xl">
+                      {"Title:"} <span className="ml-4">{"Kupal mode"}</span>
+                    </h1>
+                    <h1 className="flex text-justify text-wrap">
+                      {"Description:"}{" "}
+                      <span className="ml-4">
+                        {
+                          "Pwede magtanong? Ganyan ho ba ang boses ng mga nagtatanong maem?? pag limit og words dri boy na mga let's say 10 words pag mo reach na ana kay mag ellipsis na sya..."
+                        }
+                      </span>
+                    </h1>
+                  </div>
+                </Button>
+              </MyDropdown>
+            </div>
+          </TodoListLayout>
         </div>
-    );
-   
-
+      </MainLayout>
+    </>
+  );
 };
 
 export default Todo;

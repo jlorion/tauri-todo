@@ -14,7 +14,7 @@ export default function Login() {
         <form action="" className="space-y-5">
           <Input type="email" placeholder="Email" icon={<IoMdMail />} />
           <Input type="password" placeholder="Password" icon={<FaLock />} />
-          <Button type="submit" className="w-full my-6 cursor-pointer" size="lg">
+          <Button type="submit" className="w-full my-6" size="lg">
             Login
           </Button>
         </form>

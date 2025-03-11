@@ -7,7 +7,7 @@ const inputVariants = cva(
   {
     variants: {
       focus: {
-        default: "focus:border-cyan-500 ",
+        default: "focus:border-cyan-500",
         outline: "focus:border-blue-500 focus:bg-transparent",
         filled: "focus:bg-gray-300",
         ghost: "focus:border-gray-400 focus:bg-transparent",
