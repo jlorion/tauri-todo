@@ -29,6 +29,8 @@ const Todo = () => {
         const db = await Database.load("sqlite:database.db");
         db.execute("INSERT into todo (todo, isDone, user_id) VALUES ($1, $2, $3)", [inputValue, 0, user_id])
         getTodos()
+        console.log("this is where add todos is")
+        console.log(todos)
         setInputValue('');
     };
 

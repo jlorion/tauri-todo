@@ -8,7 +8,6 @@ const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    let response;
     const navigate = useNavigate();
 
 
@@ -19,6 +18,7 @@ const Signup = () => {
             await db.execute("INSERT INTO users (name, email, password) values ($1, $2, $3)", [name, email, password])
             navigate("/")
         } catch (err) {
+            setError(err)
             console.log(err);
         }
     };
