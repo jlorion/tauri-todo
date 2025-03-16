@@ -16,7 +16,7 @@ import MyDropdown from "@/components/custom/MyDropdown";
 import TodoListLayout from "@/layouts/TodoListLayout";
 import { useNavigate, useLocation } from "react-router-dom";
 import Database from "@tauri-apps/plugin-sql";
-import { format, isBefore } from "date-fns";
+import { format, isBefore, set } from "date-fns";
 
 const Todo = () => {
   const [position, setPosition] = useState("All");
@@ -28,6 +28,7 @@ const Todo = () => {
   const [desc, setDesc] = useState("")
   const [sDate, setSdate] = useState("")
   const [eDate, setEdate] = useState("") 
+  const [searchString, setsearchString] = useState("")
   
   const getTodos = async ()=>{
       const db = await Database.load("sqlite:database.db");
@@ -39,6 +40,17 @@ const Todo = () => {
   return new Date();
   }
   
+  const searchBar = async(inputs) => {
+    setsearchString(inputs)
+    if (inputs !== "") {
+      const db = await Database.load("sqlite:database.db");
+      const todoRes = await db.select("SELECT * FROM todo WHERE user_id = $1", [user_id])
+      const searched = todoRes.filter(todo => todo.title.toLowerCase().includes(inputs.toLowerCase()))
+      setTodos(searched)
+    }else{
+      filter(position)
+    }
+  }
 
   const filter = async(pos)=>{
     const db = await Database.load("sqlite:database.db");
@@ -142,7 +154,7 @@ const Todo = () => {
         <h1 className="text-3xl text-center mb-8">Todo List</h1>
         <div className="space-y-5">
           <div className="flex gap-x-10 pb-4">
-            <Input placeholder="Search" icon={<FaSearch />} />
+            <Input placeholder="Search" icon={<FaSearch />} value={searchString} onChange={(e)=> searchBar(e.target.value)} />
 
             <MyDropdown dialogTitle="Add Task" 
             buttons={[{ text: "Submit", type: "submit"}]} 
